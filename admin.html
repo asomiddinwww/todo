@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="./admin.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center py-10">
+<div class="bg-white p-6 rounded-2xl shadow-lg w-96 mb-10">
+    <h1 class="text-2xl font-bold mb-6 text-center text-gray-700">Admin Panel</h1>
+
+    <input id="name" type="text" placeholder="Ismi" class="w-full border p-2 mb-3 rounded-lg">
+    <input id="age" type="number" placeholder="Yoshi" class="w-full border p-2 mb-3 rounded-lg">
+    <input id="money" type="number" placeholder="Secha puli" class="w-full border p-2 mb-3 rounded-lg">
+    <input id="img" type="text" placeholder="Rasm URL" class="w-full border p-2 mb-3 rounded-lg">
+    
+    <label class="block text-gray-600 mb-1">Karta rangi:</label>
+    <input id="color" type="color" class="w-full border p-1 rounded-lg mb-4" value="#ffffff">
+
+    <button id="saveBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg">
+      Saqlash
+    </button>
+
+    <button id="updateBtn" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg hidden mt-2">
+      Tahrirlashni saqlash
+    </button>
+
+    <div class="mt-6 text-center">
+      <a href="index.html" class="text-blue-600 hover:underline">Foydalanuvchilar sahifasiga o‘tish</a>
+    </div>
+  </div>
+
+  <div class="w-11/12 md:w-3/4 grid grid-cols-1 md:grid-cols-3 gap-6" id="userList"></div>
+
+  <script>
+    const nameInput = document.getElementById('name');
+    const ageInput = document.getElementById('age');
+    const moneyInput = document.getElementById('money');
+    const imgInput = document.getElementById('img');
+    const colorInput = document.getElementById('color');
+    const saveBtn = document.getElementById('saveBtn');
+    const updateBtn = document.getElementById('updateBtn');
+    const loading = document.getElementById('loading');
+    const userList = document.getElementById('userList');
+
+    let users = JSON.parse(localStorage.getItem('users')) || [];
+    let editIndex = null;
+
+    function showLoading(time = 300) {
+      loading.style.display = 'flex';
+      setTimeout(() => {
+        loading.style.display = 'none';
+      }, time);
+    }
+
+    function renderUsers() {
+      userList.innerHTML = '';
+      if (users.length === 0) {
+        userList.innerHTML = `<p class='text-gray-600 text-center col-span-3'>Hozircha foydalanuvchi yo‘q 😔</p>`;
+        return;
+      }
+
+      users.forEach((u, index) => {
+        const card = document.createElement('div');
+        card.className = 'bg-white p-4 rounded-2xl shadow-md flex flex-col items-center';
+        card.style.backgroundColor = u.color || "#ffffff";
+
+        card.innerHTML = `
+          <img src="${u.img}" alt="${u.name}" class="img1">
+          <h2 class="text-xl font-semibold">${u.name}</h2>
+          <p class="text-gray-600">Yoshi: ${u.age}</p>
+          <p class="text-gray-600">Narxi: ${u.money} so‘m</p>
+          <div class="flex gap-2 mt-4">
+            <button id="btn" class="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-1 rounded-lg editBtn" data-index="${index}">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded-lg deleteBtn" data-index="${index}">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        `;
+        userList.appendChild(card);
+      });
+
+       document.querySelectorAll('.deleteBtn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const index = e.target.dataset.index;
+          if (confirm('Rostdan ham o‘chirmoqchimisiz?')) {
+            users.splice(index, 1);
+            localStorage.setItem('users', JSON.stringify(users));
+            renderUsers();
+          }
+        });
+      });
+
+      document.querySelectorAll('.editBtn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          editIndex = e.target.dataset.index;
+          const u = users[editIndex];
+          nameInput.value = u.name;
+          ageInput.value = u.age;
+          moneyInput.value = u.money;
+          imgInput.value = u.img;
+          colorInput.value = u.color || "#ffffff";
+          saveBtn.classList.add('hidden');
+          updateBtn.classList.remove('hidden');
+        });
+      });
+    }
+
+    saveBtn.addEventListener('click', () => {
+      const name = nameInput.value.trim();
+      const age = ageInput.value.trim();
+      const money = moneyInput.value.trim();
+      const img = imgInput.value.trim();
+      const color = colorInput.value;
+
+      if (!name || !age || !money || !img) {
+        alert("Iltimos, barcha maydonlarni to‘ldiring!");
+        return;
+      }
+
+      users.push({ name, age, money, img, color });
+      localStorage.setItem('users', JSON.stringify(users));
+      nameInput.value = ageInput.value = moneyInput.value = imgInput.value = '';
+      colorInput.value = '#ffffff';
+      renderUsers();
+    });
+
+    uupdateBtn.addEventListener('click', () => {
+      const name = nameInput.value.trim();
+      const age = ageInput.value.trim();
+      const money = moneyInput.value.trim();
+      const img = imgInput.value.trim();
+      const color = colorInput.value;
+
+      if (!name || !age || !money || !img) {
+        alert("Iltimos, barcha maydonlarni to‘ldiring!");
+        return;
+      }
+
+      users[editIndex] = { name, age, money, img, color };
+      localStorage.setItem('users', JSON.stringify(users));
+
+     saveBtn.classList.remove('hidden');
+      updateBtn.classList.add('hidden');
+      nameInput.value = ageInput.value = moneyInput.value = imgInput.value = '';
+      colorInput.value = '#ffffff';
+      editIndex = null;
+      renderUsers();
+    });
+
+    renderUsers();
+
+     window.addEventListener('load', () => {
+      showLoading(1000);
+      renderUsers();
+    });
+  </script>
+</body>
+</html>
